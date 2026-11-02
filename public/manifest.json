@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "MARGIN · YouTube",
+  "short_name": "MARGIN",
+  "version": "0.1.0",
+  "description": "用 MARGIN 的排版和视觉重做 YouTube 首页推荐：去掉广告和 Shorts 行，只留视频卡片。",
+  "icons": {
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/16.png",
+      "48": "icons/48.png"
+    }
+  },
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "nativeMessaging",
+    "declarativeNetRequest"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "fonts/*",
+        "flux.js"
+      ],
+      "matches": [
+        "https://www.youtube.com/*"
+      ]
+    }
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  }
+}

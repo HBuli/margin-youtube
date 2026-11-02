@@ -1,0 +1,224 @@
+export type Theme = 'auto' | 'light' | 'dark';
+/** 只保留经典配色（雾蓝 / 夜蓝已按用户要求移除） */
+export type Palette = 'classic';
+export type ShaderId = 'aurora' | 'silk' | 'mesh' | 'grain' | 'ice' | 'veil' | 'smoke' | 'neuro' | 'flow' | 'rays' | 'blend' | 'flux' | 'gate';
+export type BgMode = 'random' | 'fixed' | 'image' | 'off';
+/** 内容缩放档位（v0.1.1：下限放到 70%，高分屏有人嫌 100% 还是大） */
+export const ZOOMS = [70, 80, 90, 100, 110, 120] as const;
+export type Zoom = (typeof ZOOMS)[number];
+
+/** 首页可以隐藏的部件（v0.43）：首页顶部的搜索框、日期栏、换一批按钮，以及卡片上的各项信息 */
+export type HomeBit = 'search' | 'date' | 'refresh' | 'author' | 'views' | 'danmaku' | 'ago' | 'dur' | 'reason';
+export const HOME_BITS: HomeBit[] = ['search', 'date', 'refresh', 'author', 'views', 'danmaku', 'ago', 'dur', 'reason'];
+
+/** 默认屏蔽词（用户要求：反华 / 种族歧视 / 仇恨类，不限语种）。
+ *  只匹配标题和频道名，不匹配简介，尽量避免误伤正常新闻与科普。 */
+export const DEFAULT_KEYWORDS: string[] = [
+  // 中文
+  '反华', '辱华', '反中', '支那', '中共病毒', '中国病毒', '武汉病毒', '蝗虫', '小粉红',
+  '支性', '劣根', '跪族', '汉奸', '卖国', '灭共', '诛共', '台独', '港独', '疆独', '藏独',
+  // 英文
+  'anti-china', 'anti-chinese', 'china virus', 'wuhan virus', 'chink', 'chinaman',
+  'yellow peril', 'ccp virus', 'chinese virus', 'china collapse', 'end ccp', 'wumao',
+  'fifty cent army', 'bat soup', 'go back to china',
+  // 日语 / 韩语
+  '反中', 'シナ', '中国叩き', '在日特権', '짱깨', '중국놈',
+];
+
+export interface Filters {
+  /** 默认屏蔽词的版本号：老用户存的空列表会被这一版默认值补上，之后用户删掉的不会再加回来 */
+  seed?: number;
+  /** 标题关键词；写成 /正则/ 时按正则匹配 */
+  keywords: string[];
+  /** UP 主昵称或 MID */
+  ups: string[];
+  minViews: number;
+  /** 秒 */
+  minDuration: number;
+}
+
+export interface Background {
+  mode: BgMode;
+  shader: ShaderId;
+  /** 0–1 */
+  intensity: number;
+  /** 背景图片修订号：选完文件夹 +1，用来让背景层知道该重新抽一张 */
+  rev: number;
+}
+
+export interface Settings {
+  enabled: boolean;
+  theme: Theme;
+  palette: Palette;
+  hoverPreview: boolean;
+  /** 重新设计视频播放页（保留 B 站原生播放器与评论） */
+  watch: boolean;
+  /** 首页开场动画（每次打开浏览器后首次进入首页播放一次） */
+  intro: boolean;
+  /** 首页顶部「B 站足迹」热力图（关掉只是不显示，后台照样记录） */
+  footprint: boolean;
+  /** 首页顶部天气卡（关掉就不请求天气和定位） */
+  weather: boolean;
+  /** 点收藏夹直接展开全部视频（关掉时先扇形弹出最近 4 个） */
+  favDirect: boolean;
+  /** 播放页打开后自动进入网页全屏 */
+  autoWeb: boolean;
+  /** 网页全屏时可以往下滚动看评论（播放器跟着滚走） */
+  webScroll: boolean;
+  /** 首页每行几个视频：0 = 按窗口宽度自动，4 / 5 = 固定 */
+  cols: 0 | 4 | 5;
+  /** 首页隐藏的部件；空 = 全部显示 */
+  homeHide: HomeBit[];
+  /** 标题字体（v0.46，B 站评论建议）：衬线 = 宋体系，无衬线 = 黑体系 */
+  titleFont: 'serif' | 'sans';
+  /** 数字、时间、UID 这些小字用等宽字体（v0.47，评论区：关掉宋体和 mono 少点 AI 味）；关掉后跟正文字体一致 */
+  monoNum: boolean;
+  /** 顶栏入口（v0.47.1，评论区：想隐藏分区、大会员这些、调顺序）：隐藏的入口名；B 站入口的顺序 */
+  headHide: string[];
+  headOrder: string[];
+  /** 内容缩放（v0.47.1，评论区：字有点小）：首页和接管页正文区整体放大，100 / 110 / 120 */
+  zoom: Zoom;
+  /** Ctrl+K 打开命令面板（v0.47.2，评论区：和浏览器 / 其他扩展的 Ctrl+K 冲突时可以关掉，/ 键仍可用） */
+  cmdK: boolean;
+  /** 视频 CDN 节点（v0.47.2，评论区：想像 bilisail 那样选节点）：'' = B 站默认 */
+  cdn: string;
+  /** 自定义正文字体（v0.47）：填本机已装的字体名，比如「微软雅黑」「HarmonyOS Sans SC」；空 = 映间默认 */
+  bodyFont: string;
+  /** 账号卡片可以拖拽甩动（v0.46）：关掉后卡片固定挂着，只能点击翻面 */
+  idDrag: boolean;
+  filters: Filters;
+  bg: Background;
+}
+
+export const DEFAULTS: Settings = {
+  enabled: true,
+  theme: 'auto',
+  palette: 'classic',
+  hoverPreview: true,
+  watch: true,
+  intro: true,
+  footprint: true,
+  weather: true,
+  favDirect: false,
+  autoWeb: false,
+  webScroll: true,
+  cols: 0,
+  homeHide: [],
+  titleFont: 'serif',
+  monoNum: true,
+  headHide: [],
+  headOrder: [],
+  zoom: 100,
+  cmdK: true,
+  cdn: '',
+  bodyFont: '',
+  idDrag: true,
+  filters: { keywords: DEFAULT_KEYWORDS, ups: [], minViews: 0, minDuration: 0, seed: 1 },
+  bg: { mode: 'random', shader: 'aurora', intensity: 0.6, rev: 0 },
+};
+
+/** 字体名只留字母、数字、中日韩文字、空格和 - _ .，最长 64 个字：会拼进 CSS font-family，不能带引号分号 */
+export function cleanFont(v: unknown): string {
+  return typeof v === 'string' ? v.replace(/[^\p{L}\p{N} ._-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 64) : '';
+}
+
+/** 只接受 bilivideo / akamaized / hdslb 的主机名，防止把视频流导到别处 */
+export function cleanHost(v: unknown): string {
+  const s = typeof v === 'string' ? v.trim().toLowerCase() : '';
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)*\.(bilivideo\.com|bilivideo\.cn|akamaized\.net)$/.test(s) ? s : '';
+}
+
+function strList(v: unknown): string[] {
+  return Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === 'string' && x.length <= 16))].slice(0, 60) : [];
+}
+
+const KEY = 'margin:settings';
+export const BG_IMAGE_KEY = 'margin:bg-image';
+
+function merge(raw: Partial<Settings> | undefined): Settings {
+  const r = raw ?? {};
+  return {
+    ...DEFAULTS,
+    ...r,
+    filters: {
+      ...DEFAULTS.filters,
+      ...(r.filters ?? {}),
+      // 首次升级：把默认屏蔽词灌进去（老存档里是空数组，直接 spread 会覆盖掉）
+      ...((r.filters as Filters | undefined)?.seed ? {} : { keywords: DEFAULT_KEYWORDS, seed: 1 }),
+    },
+    bg: { ...DEFAULTS.bg, ...(r.bg ?? {}) },
+    homeHide: Array.isArray(r.homeHide) ? HOME_BITS.filter((b) => r.homeHide!.includes(b)) : [],
+    titleFont: r.titleFont === 'sans' ? 'sans' : 'serif',
+    monoNum: r.monoNum !== false,
+    headHide: strList(r.headHide),
+    headOrder: strList(r.headOrder),
+    zoom: (ZOOMS as readonly number[]).includes(r.zoom as number) ? (r.zoom as Zoom) : 100,
+    cmdK: r.cmdK !== false,
+    cdn: cleanHost(r.cdn),
+    bodyFont: cleanFont(r.bodyFont),
+    idDrag: r.idDrag !== false,
+    palette: 'classic', // 旧版存过 mist，统一回到经典
+  };
+}
+
+export async function loadSettings(): Promise<Settings> {
+  const r = await chrome.storage.local.get(KEY);
+  return merge(r[KEY] as Partial<Settings> | undefined);
+}
+
+export async function saveSettings(patch: Partial<Settings>): Promise<Settings> {
+  const next = merge({ ...(await loadSettings()), ...patch });
+  await chrome.storage.local.set({ [KEY]: next });
+  return next;
+}
+
+export function onSettingsChange(cb: (s: Settings, prev: Settings) => void): void {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local' || !changes[KEY]) return;
+    cb(merge(changes[KEY].newValue as Partial<Settings>), merge(changes[KEY].oldValue as Partial<Settings>));
+  });
+}
+
+/**
+ * 校验导入的设置：只取认识的字段、类型不对的丢掉，其余用默认值补齐。整体不是对象时返回 null。
+ */
+export function sanitizeSettings(raw: unknown): Settings | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const r = raw as Record<string, unknown>;
+  const out: Partial<Settings> = {};
+  const bool = (k: 'enabled' | 'hoverPreview' | 'watch' | 'intro' | 'footprint' | 'weather' | 'favDirect' | 'autoWeb' | 'webScroll' | 'idDrag' | 'monoNum') => { if (typeof r[k] === 'boolean') out[k] = r[k] as boolean; };
+  bool('enabled'); bool('hoverPreview'); bool('watch'); bool('intro'); bool('footprint'); bool('weather'); bool('favDirect'); bool('autoWeb'); bool('webScroll'); bool('idDrag'); bool('monoNum');
+  if (typeof r.bodyFont === 'string') out.bodyFont = cleanFont(r.bodyFont);
+  if (Array.isArray(r.headHide)) out.headHide = strList(r.headHide);
+  if (Array.isArray(r.headOrder)) out.headOrder = strList(r.headOrder);
+  if (typeof r.cmdK === 'boolean') out.cmdK = r.cmdK;
+  if (typeof r.cdn === 'string') out.cdn = cleanHost(r.cdn);
+  if (typeof r.zoom === 'number' && (ZOOMS as readonly number[]).includes(r.zoom)) out.zoom = r.zoom as Zoom;
+  if (r.titleFont === 'serif' || r.titleFont === 'sans') out.titleFont = r.titleFont;
+  if (r.cols === 0 || r.cols === 4 || r.cols === 5) out.cols = r.cols;
+  if (Array.isArray(r.homeHide)) out.homeHide = HOME_BITS.filter((b) => (r.homeHide as unknown[]).includes(b));
+  if (r.theme === 'auto' || r.theme === 'light' || r.theme === 'dark') out.theme = r.theme;
+  const strs = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x.length <= 200).slice(0, 500) : undefined);
+  const num = (v: unknown, max: number) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= max ? v : undefined);
+  const f = (r.filters && typeof r.filters === 'object' ? r.filters : {}) as Record<string, unknown>;
+  out.filters = { ...DEFAULTS.filters };
+  out.filters.keywords = f.seed ? strs(f.keywords) ?? DEFAULTS.filters.keywords : DEFAULT_KEYWORDS;
+  out.filters.seed = 1;
+  out.filters.ups = strs(f.ups) ?? DEFAULTS.filters.ups;
+  out.filters.minViews = num(f.minViews, 1e10) ?? DEFAULTS.filters.minViews;
+  out.filters.minDuration = num(f.minDuration, 86400) ?? DEFAULTS.filters.minDuration;
+  const b = (r.bg && typeof r.bg === 'object' ? r.bg : {}) as Record<string, unknown>;
+  const SHADERS: ShaderId[] = ['aurora', 'silk', 'mesh', 'grain', 'ice', 'veil', 'smoke', 'neuro', 'flow', 'rays', 'blend', 'flux', 'gate'];
+  out.bg = {
+    mode: (['random', 'fixed', 'image', 'off'] as BgMode[]).includes(b.mode as BgMode) ? (b.mode as BgMode) : DEFAULTS.bg.mode,
+    shader: SHADERS.includes(b.shader as ShaderId) ? (b.shader as ShaderId) : DEFAULTS.bg.shader,
+    intensity: num(b.intensity, 1) ?? DEFAULTS.bg.intensity,
+    rev: typeof b.rev === 'number' ? b.rev : 0,
+  };
+  return merge(out);
+}
+
+/** 整份替换设置（导入用） */
+export async function replaceSettings(next: Settings): Promise<void> {
+  await chrome.storage.local.set({ [KEY]: merge(next) });
+}

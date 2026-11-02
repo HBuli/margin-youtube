@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# 启动 Zen 并自动装上 MARGIN · YouTube（临时扩展，只对本次进程有效）
+set -u
+PROFILE="/home/Hbuli/.config/zen/kq2vj39y.Default (release)"
+XPI="/home/Hbuli/Downloads/margin-youtube-firefox-0.1.0.xpi"
+if pgrep -f "zen-browser.*(release)" >/dev/null 2>&1; then
+  exec zen-browser --profile "$PROFILE" "$@"
+fi
+WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-1}" \
+XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/1001}" \
+  zen-browser --profile "$PROFILE" --remote-debugging-port 9223 "$@" &
+for i in $(seq 1 20); do
+  sleep 0.5
+  curl -sf -o /dev/null "http://127.0.0.1:9223/" && break
+done
+node /home/Hbuli/DSH/youtube-margin/tools/install-xpi.mjs "$XPI" >/dev/null 2>&1 \
+  && echo "MARGIN · YouTube 已装载" \
+  || echo "自动装载失败：打开 about:debugging#/runtime/this-firefox 手动临时载入 $XPI"
