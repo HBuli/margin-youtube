@@ -1,8 +1,8 @@
 {
-  "name": "margin",
+  "name": "margin-youtube",
   "version": "0.47.4",
   "private": true,
-  "description": "映间 MARGIN — 一个重新设计的 B 站首页浏览器扩展",
+  "description": "MARGIN · YouTube —— 用 MARGIN 的排版和视觉重做 YouTube 首页推荐，播放页保留原生播放器",
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit && node scripts/build.mjs",

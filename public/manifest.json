@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MARGIN · YouTube",
-  "short_name": "MARGIN",
+  "short_name": "MARGIN YT",
   "version": "0.1.0",
   "description": "用 MARGIN 的排版和视觉重做 YouTube 首页推荐：去掉广告和 Shorts 行，只留视频卡片。",
   "icons": {
