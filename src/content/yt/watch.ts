@@ -242,6 +242,7 @@ ytd-watch-next-secondary-results-renderer #chips { display: none !important; }
 /** shadow 内部：外壳只做顶栏，其余区域透明、不接收点击，让原生播放器照常可操作 */
 const LOCAL_CSS = `
 .app.watch-shell { position: fixed; inset: 0; background: transparent; overflow: visible; pointer-events: none; }
+.app.watch-shell[fs] .top { display: none !important; }
 .app.watch-shell .top { position: fixed; top: 0; left: 0; right: 0; height: 56px; padding: 0 24px; pointer-events: auto; }
 .app.watch-shell .top .brand .mark { width: 32px; height: 32px; border-radius: 10px; }
 `;
@@ -251,6 +252,8 @@ export class YtWatch {
   private root: ShadowRoot;
   private app!: HTMLElement;
   private head!: Header;
+  /** 全屏状态变化：全屏时把顶栏藏掉，否则它 fixed 在视频上面 */
+  private onFs = () => this.syncFullscreen();
   private panel!: ReturnType<typeof createYtSettings>;
   private media = matchMedia('(prefers-color-scheme: dark)');
   private lastTheme = '';
@@ -341,6 +344,18 @@ export class YtWatch {
     });
   }
 
+  /** 全屏（浏览器全屏 / YouTube 自己的 fullscreen 属性）时藏起顶栏 */
+  private syncFullscreen(): void {
+    const fs =
+      !!document.fullscreenElement ||
+      !!(document as Document & { webkitFullscreenElement?: Element }).webkitFullscreenElement ||
+      document.documentElement.hasAttribute('fullscreen') ||
+      !!document.querySelector('ytd-watch-flexy[fullscreen]');
+    this.app.toggleAttribute('fs', fs);
+    this.head.el.style.display = fs ? 'none' : '';
+    if (fs) this.panel.close();
+  }
+
   private guardAds(): void {
     const player = document.querySelector<HTMLElement>('.html5-video-player.ad-showing');
     const video = document.querySelector<HTMLVideoElement>('#movie_player video, .html5-video-player video');
@@ -375,6 +390,10 @@ export class YtWatch {
   mount(): void {
     if (this.host.isConnected) return;
     document.documentElement.append(this.host);
+    document.addEventListener('fullscreenchange', this.onFs);
+    document.addEventListener('webkitfullscreenchange', this.onFs);
+    document.addEventListener('yt-fullscreen-change', this.onFs);
+    this.syncFullscreen();
     this.adTimer = window.setInterval(() => this.guardAds(), 400);
     // 评论是懒加载的，1.2s 扫一次比 MutationObserver 简单，开销可以忽略
     this.trTimer = window.setInterval(() => this.autoTranslate(), 1200);
@@ -396,6 +415,9 @@ export class YtWatch {
   destroy(): void {
     if (this.dead) return;
     this.dead = true;
+    document.removeEventListener('fullscreenchange', this.onFs);
+    document.removeEventListener('webkitfullscreenchange', this.onFs);
+    document.removeEventListener('yt-fullscreen-change', this.onFs);
     clearInterval(this.adTimer);
     clearInterval(this.trTimer);
     this.styleEl?.remove();
